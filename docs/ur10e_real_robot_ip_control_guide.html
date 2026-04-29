@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UR10e 真机发送方案修订版</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    :root {
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: #d7dee8;
+      --paper: #f5f8fb;
+      --card: #ffffff;
+      --accent: #0f5f73;
+      --accent-soft: #e8f7fa;
+      --good: #0f766e;
+      --good-soft: #e9f8f4;
+      --warn: #a04b00;
+      --warn-soft: #fff3e4;
+      --rose: #9f1239;
+      --rose-soft: #fff1f4;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    body {
+      padding: 18px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      padding: 20px 22px 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(15, 95, 115, 0.18), transparent 28%),
+        linear-gradient(135deg, #f7fbfd 0%, #eef5fb 48%, #ffffff 100%);
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 29px;
+      line-height: 1.2;
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 6px 6px 0;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    h2 {
+      margin: 24px 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--line);
+      font-size: 19px;
+    }
+
+    h3 {
+      margin: 16px 0 8px;
+      font-size: 14px;
+    }
+
+    p {
+      margin: 7px 0;
+    }
+
+    ul, ol {
+      margin: 8px 0 10px 20px;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 14px;
+      font-size: 11px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f6fa;
+    }
+
+    code {
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: #f1f4f8;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+    }
+
+    pre {
+      margin: 10px 0 12px;
+      padding: 12px 14px;
+      border: 1px solid #dde4ee;
+      border-radius: 12px;
+      background: #f8fafc;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 10.8px;
+      line-height: 1.6;
+    }
+
+    .callout {
+      margin: 12px 0;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+    }
+
+    .callout.good {
+      background: var(--good-soft);
+      border-color: #b9e8dc;
+    }
+
+    .callout.warn {
+      background: var(--warn-soft);
+      border-color: #efc6a6;
+    }
+
+    .callout.rose {
+      background: var(--rose-soft);
+      border-color: #f6c6d3;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .card {
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .page-break {
+      break-before: page;
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div>
+      <span class="tag">修订版</span>
+      <span class="tag">GNN 迭代保留</span>
+      <span class="tag">甄别性发送</span>
+      <span class="tag">Task3 重点</span>
+      <span class="tag">TCP 30002</span>
+    </div>
+    <h1>UR10e 真机发送方案修订版</h1>
+    <p>这份方案专门响应新的五点约束：不削弱 GNN 迭代求解本体，只甄别哪些解应下发到真机；复用你已上传的 <code>tcp.py</code> 通信方式；对简单子任务与路径型子任务采取不同发送策略；并严格遵循“如无必要勿增实体”。</p>
+    <div class="meta">文档时间：2026-04-26 | 当前仓库事实基线：<code>RobotIPClient</code> 仍是文本输出桥接层，<code>tcp.py</code> 提供了可复用的 TCP 发送原型，Task3 的 <code>task_screw.py</code> 已经具备“外层步进 + 内层迭代求解”的天然分层。</div>
+  </section>
+
+  <section>
+    <h2>1. 这次修订的核心纠偏</h2>
+    <div class="callout rose">
+      上一版方案里，“不要把 <code>solver_iteration</code> 当真机轨迹”这个结论本身没有错，但表达得还不够贴近你的真实目标。你强调得非常对：<strong>GNN 的迭代求解是核心，不是要把迭代去掉，而是要在保持迭代的前提下，甄别哪些迭代结果应进入真实机械臂。</strong>
+    </div>
+    <p>因此，这次方案不再把问题表述成“要不要迭代”，而是重新表述成下面这句话：</p>
+    <div class="callout good">
+      <strong>保留 GNN 迭代求解全过程，但把“求解过程中的内部状态”和“应该发送给真机的稳定命令点”区分开。</strong>
+    </div>
+    <p>这意味着：</p>
+    <ol>
+      <li>GNN 仍然每步迭代，仍然进行误差修正、步长裁剪、关节限位和 MuJoCo 前向验证。</li>
+      <li>只是并非每一个内部迭代状态都要出现在 TCP 命令流中。</li>
+      <li>不同子任务对“该发哪一层结果”的要求不一样，不能一刀切。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>2. 当前代码里已经存在的三层结果</h2>
+    <p>你当前仓库实际上已经天然存在三层“角度结果”，只是之前还没有把它们严格命名并用于真机发送策略。</p>
+    <table>
+      <thead>
+        <tr>
+          <th>层级</th>
+          <th>当前代码中的来源</th>
+          <th>语义</th>
+          <th>是否适合直接发给真机</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>内层迭代解</td>
+          <td><code>GNNIKSolver.solve(...)</code> 循环中的每轮 <code>angles</code></td>
+          <td>神经网络逆解器的内部逼近过程</td>
+          <td>默认不适合。它主要服务于收敛，不天然等价于物理轨迹。</td>
+        </tr>
+        <tr>
+          <td>单次求解最终解</td>
+          <td><code>solver_final</code> 对应的最终 <code>angles</code></td>
+          <td>对某个目标位姿的单次收敛结果</td>
+          <td>适合简单点到点子任务。</td>
+        </tr>
+        <tr>
+          <td>外层路径步最终命令解</td>
+          <td><code>task_linear</code>、<code>task_arc</code>、<code>task_screw</code> 中每个外层步的最终命令角</td>
+          <td>路径型子任务对每个离散轨迹步给出的稳定输出</td>
+          <td>最适合直线、圆弧、旋拧这类需要轨迹连续性的任务。</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      真机发送策略的本质，并不是替换求解器，而是决定：<strong>当前这次动作，应该消费哪一层结果。</strong>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. 现有代码中最关键的事实</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3><code>tcp.py</code> 已经证明 TCP 链路是可用原型</h3>
+        <p>你上传的 <code>tcp.py</code> 已经给出了最小可用的发送方式：</p>
+        <pre>ROBOT_IP = "192.168.125.12"
+PORT = 30002
+
+cmd = f"movej([{joint_str}], a=1.2, v=1.05)\n"
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((ROBOT_IP, PORT))
+sock.send(cmd.encode())
+sock.close()</pre>
+        <p>这说明第一版真机接入完全可以继续采用 <code>URScript + TCP + 30002</code> 的方式，只需要把这段逻辑内聚到 <code>RobotIPClient</code>。</p>
+      </div>
+      <div class="card">
+        <h3>Task3 已经具备最有价值的外层步进结构</h3>
+        <p><code>subtask/task_screw.py</code> 中，旋拧原语并不是“直接把 solver 内部迭代结果都拿来发送”，而是：</p>
+        <ol>
+          <li>先生成每个螺旋步的目标位姿。</li>
+          <li>对该步目标位姿调用一次 GNN 迭代求解。</li>
+          <li>得到该步稳定解后，再叠加腕关节累计旋转。</li>
+          <li>最后把真正的 <code>cmd_angles</code> 交给 <code>apply_motion_step(..., stage="linear_step")</code>。</li>
+        </ol>
+        <p>这正是 Task3 最应发送的层级。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. 本次修订后的总原则</h2>
+    <div class="callout good">
+      <strong>原则 A：</strong> 不改 GNN 迭代求解本体。<br>
+      <strong>原则 B：</strong> 点到点子任务优先发送“单次求解最终解”。<br>
+      <strong>原则 C：</strong> 路径型子任务优先发送“每个外层轨迹步的最终命令解”。<br>
+      <strong>原则 D：</strong> <code>solver_iteration</code> 保留为调试通道，而不是默认真机通道。<br>
+      <strong>原则 E：</strong> 如无必要勿增实体，只在现有 <code>RobotIPClient</code>、<code>solve()</code> 和各子任务调用点上做最小改动。
+    </div>
+  </section>
+
+  <section class="page-break">
+    <h2>5. 详细发送策略：按子任务分类，而不是按项目整体一刀切</h2>
+    <p>下面这张表是这次方案的核心。它回答的是：<strong>每个子任务最终应该从哪一层结果中取命令发给真机。</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>子任务</th>
+          <th>当前代码特征</th>
+          <th>建议发送来源</th>
+          <th>建议原因</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Approach</code></td>
+          <td>一次 <code>solve()</code>，目标是预接近点</td>
+          <td><code>solver_final</code></td>
+          <td>它本质是点到点预位姿调整，通常不必把内部迭代过程下发。</td>
+        </tr>
+        <tr>
+          <td><code>Orient</code></td>
+          <td>一次 <code>solve()</code>，目标是姿态对齐</td>
+          <td><code>solver_final</code></td>
+          <td>本质也是单次收敛后的最终角度更有意义。</td>
+        </tr>
+        <tr>
+          <td><code>Reach</code></td>
+          <td>内部调用 <code>task_linear.execute</code></td>
+          <td><code>linear_step</code></td>
+          <td>接近抓取点时更关心笛卡尔路径，不建议简单压缩成一个终点关节动作。</td>
+        </tr>
+        <tr>
+          <td><code>Retreat</code></td>
+          <td>内部调用 <code>task_linear.execute</code></td>
+          <td><code>linear_step</code></td>
+          <td>从接触区撤离时保持路径可控更安全，第一版应保守处理。</td>
+        </tr>
+        <tr>
+          <td><code>Linear</code></td>
+          <td>20 个外层插补步，每步一次 <code>solve()</code></td>
+          <td><code>linear_step</code></td>
+          <td>真正该发的是“每个外层步收敛后的结果”，不是每轮内部迭代角。</td>
+        </tr>
+        <tr>
+          <td><code>Arc</code></td>
+          <td>30 个外层圆弧步，每步一次 <code>solve()</code></td>
+          <td><code>linear_step</code></td>
+          <td>圆弧本身就是路径型任务，外层步进结果才有物理意义。</td>
+        </tr>
+        <tr>
+          <td><code>Screw</code></td>
+          <td>90 个螺旋步，每步一次 <code>solve()</code>，再叠加腕关节累计旋转</td>
+          <td><code>linear_step</code></td>
+          <td>Task3 的关键不是发送内层解，而是发送每个螺旋步最终形成的 <code>cmd_angles</code>。</td>
+        </tr>
+        <tr>
+          <td><code>Hover</code></td>
+          <td>保持当前位姿</td>
+          <td>不发新的关节运动命令</td>
+          <td>它不产生新轨迹，只是停留。</td>
+        </tr>
+        <tr>
+          <td><code>Grasp / Release</code></td>
+          <td>当前是 MuJoCo 执行器控制</td>
+          <td>后续由独立夹爪层处理</td>
+          <td>不应和机械臂关节命令流混成一层。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      这里最值得注意的是：<strong><code>Reach</code> 和 <code>Retreat</code> 虽然看起来“简单”，但由于它们已经被实现成线性路径原语，第一版真机方案应继续按路径型任务对待，而不是贸然压缩成单条终点关节动作。</strong>
+    </div>
+  </section>
+
+  <section>
+    <h2>6. Task3 为什么不能简单“只取首尾”</h2>
+    <p>你的判断是对的。Task3 的旋拧阶段不能像部分简单子任务那样只取首尾关节角，因为它不是普通的点到点动作，而是一个“沿轴向进给 + 绕同轴旋转”的耦合过程。</p>
+
+    <h3>6.1 当前 <code>task_screw.py</code> 已经体现了正确的几何结构</h3>
+    <ol>
+      <li>由 <code>SCREW_STEPS</code> 把整段旋拧离散成多个螺旋步。</li>
+      <li>每一步先生成 <code>interp_pos</code> 和 <code>interp_rot</code>。</li>
+      <li>再让 GNN 对这一小步目标位姿进行完整迭代求解。</li>
+      <li>得到 <code>solved_angles</code> 后，还会额外累计腕关节角度，形成真正的 <code>cmd_angles</code>。</li>
+      <li>最后发送的是 <code>cmd_angles</code>，不是任意一个中间内部解。</li>
+    </ol>
+
+    <h3>6.2 Task3 最应该发送的是什么</h3>
+    <div class="callout good">
+      对 Task3 来说，最该下发给真机的是：<strong>每个螺旋外层步收敛后形成的最终命令角 <code>cmd_angles</code></strong>。
+    </div>
+
+    <h3>6.3 Task3 最不该发送的是什么</h3>
+    <div class="callout rose">
+      最不该做的是把 <code>solve()</code> 内部每一轮迭代角都直接发出去。因为那样发出去的不是“螺旋轨迹步”，而是“神经网络内部逼近轨迹”，两者语义不同。
+    </div>
+
+    <h3>6.4 对 Task3 的结论</h3>
+    <ol>
+      <li>不砍 GNN 迭代。</li>
+      <li>不把内部迭代过程当作默认真机轨迹。</li>
+      <li>保留每个螺旋步一次完整求解。</li>
+      <li>发送每个螺旋步的最终命令角。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>7. 对简单子任务和路径子任务的统一解释</h2>
+    <p>你提出的“某些简单子任务可以直接用 <code>movej</code> 取任务首尾关节角度”是成立的，但要加一条边界：</p>
+    <div class="callout">
+      <strong>只有当子任务本质上是自由空间点到点动作时，才建议用单次求解最终角度；只要任务本质上是在近目标区域保持几何路径，就应继续保留外层路径步发送。</strong>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>可优先当作点到点的</h3>
+        <ul>
+          <li><code>Approach</code></li>
+          <li><code>Orient</code></li>
+          <li>后续若脱离障碍区的某些“回到安全位姿”动作</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>应保留路径步发送的</h3>
+        <ul>
+          <li><code>Reach</code></li>
+          <li><code>Retreat</code></li>
+          <li><code>Linear</code></li>
+          <li><code>Arc</code></li>
+          <li><code>Screw</code></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-break">
+    <h2>8. 最小代码改动方案</h2>
+    <p>遵循“如无必要勿增实体”，本次建议不增加新服务、不新增独立调度器、不重写求解器架构，只在现有类和调用点上做最少的结构化改动。</p>
+
+    <h3>8.1 第一处改动：<code>RobotIPClient</code> 复用 <code>tcp.py</code> 变为真正的 TCP 发送器</h3>
+    <p>这一步不是新架构，只是把你已经验证过的 <code>tcp.py</code> 通信逻辑内聚到现有桥接层中。</p>
+    <pre>connect()
+  -> socket.socket(AF_INET, SOCK_STREAM)
+  -> socket.connect((host, port))
+
+send_movej(joint_angles)
+  -> command = format_movej(joint_angles) + "\n"
+  -> socket.sendall(command.encode("utf-8"))
+  -> optional: mirror the same command to output_path as a log
+
+close()
+  -> socket.close()</pre>
+
+    <p>建议默认直接使用你已有的参数：</p>
+    <pre>host = "192.168.125.12"
+port = 30002</pre>
+
+    <div class="callout warn">
+      唯一与 <code>tcp.py</code> 不同的建议是：<strong>不要每发一条命令就重新 connect/close 一次。</strong> 对多步路径任务来说，应该在任务开始前建立连接，在整个行为树运行期间复用同一个 socket，结束时统一关闭。
+    </div>
+
+    <h3>8.2 第二处改动：给 <code>solve()</code> 增加“是否发内部命令”的最小控制</h3>
+    <p>为了支持“简单任务发 <code>solver_final</code>，路径任务发 <code>linear_step</code>，但两者不重复发送”，需要在 <code>solve()</code> 层面增加最小的发射控制。</p>
+    <p>推荐增加两个可选控制，不必引入复杂新类型：</p>
+    <pre>emit_solver_iteration: bool = False
+emit_solver_final: bool = True</pre>
+
+    <p>这样就可以做到：</p>
+    <table>
+      <thead>
+        <tr>
+          <th>使用场景</th>
+          <th><code>emit_solver_iteration</code></th>
+          <th><code>emit_solver_final</code></th>
+          <th>外层是否再发 <code>linear_step</code></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>点到点子任务</td>
+          <td>False</td>
+          <td>True</td>
+          <td>否，避免重复</td>
+        </tr>
+        <tr>
+          <td>路径型子任务</td>
+          <td>False</td>
+          <td>False</td>
+          <td>是，由外层步最终结果统一发送</td>
+        </tr>
+        <tr>
+          <td>调试内部迭代</td>
+          <td>True</td>
+          <td>可选</td>
+          <td>通常否</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>这一步非常关键，因为它能避免“<code>solver_final</code> 发一次、外层 <code>linear_step</code> 又发一次”的重复命令问题。</p>
+
+    <h3>8.3 第三处改动：保持现有 <code>stage</code> 概念，但让其真正服务于任务甄别</h3>
+    <p>不需要新建复杂的消息实体，只需要让当前已有的 <code>stage</code> 概念更加清晰：</p>
+    <ul>
+      <li><code>solver_iteration</code>：内部求解调试通道。</li>
+      <li><code>solver_final</code>：简单点到点子任务的最终解通道。</li>
+      <li><code>linear_step</code>：路径型子任务每个外层步的最终命令通道。</li>
+    </ul>
+
+    <h3>8.4 第四处改动：由各子任务选择发送层级，而不是全局只设一个模式</h3>
+    <p>目前 <code>RobotIPClient</code> 只接受单个 <code>send_mode</code> 字符串，这对混合任务不够用。要保持简洁，可以把它扩展为“允许哪些 stage 被发送”的集合，但接口仍可兼容现有字符串模式。</p>
+    <pre>enabled_stages = {"solver_final", "linear_step"}</pre>
+    <p>这样并不是引入复杂新实体，只是把“一个字符串”扩成“一个很小的集合”。</p>
+  </section>
+
+  <section>
+    <h2>9. 具体到每个文件，后续应怎么改</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>文件</th>
+          <th>建议改动</th>
+          <th>目的</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>robot_ip_client.py</code></td>
+          <td>把当前写文件逻辑替换为 TCP socket 发送；保留可选日志镜像；支持 <code>enabled_stages</code></td>
+          <td>复用现有桥接层，最小成本接入真机</td>
+        </tr>
+        <tr>
+          <td><code>GNN/ik_solver_api.py</code></td>
+          <td>在 <code>solve()</code> 中加入是否发 <code>solver_iteration</code> 和 <code>solver_final</code> 的控制参数</td>
+          <td>避免简单任务与路径任务混用时重复发命令</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task_approach.py</code></td>
+          <td>保留 GNN 迭代求解，但只让 <code>solve()</code> 发最终解；<code>apply_motion_step</code> 不再额外发同一条命令</td>
+          <td>把它明确归类为点到点子任务</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task_orient.py</code></td>
+          <td>同上</td>
+          <td>避免重复发送</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task_linear.py</code></td>
+          <td>每个外层步继续完整调用 GNN 求解，但关闭内部发送，只在 <code>apply_motion_step(..., stage="linear_step")</code> 处发送</td>
+          <td>保留直线路径语义</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task_arc.py</code></td>
+          <td>同 <code>task_linear.py</code></td>
+          <td>保留圆弧路径语义</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task_screw.py</code></td>
+          <td>每个螺旋步继续完整调用 GNN 求解，但关闭内部发送，只发送该步的最终 <code>cmd_angles</code></td>
+          <td>保证 Task3 的旋拧轨迹是“外层步语义”，而不是“内部迭代语义”</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task1_bt_demo.py</code><br><code>subtask/task2_bt_demo.py</code><br><code>subtask/task3_bt_demo.py</code></td>
+          <td>增加真机主机 IP、端口、是否启用 TCP、允许发送的 stage 集合</td>
+          <td>在入口层统一切换仿真 / 真机</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>10. 推荐的真实发送配置</h2>
+    <p>在第一版真实代码中，推荐采用如下默认策略：</p>
+    <pre>transport = "tcp"
+host = "192.168.125.12"
+port = 30002
+enabled_stages = {"solver_final", "linear_step"}
+
+# 点到点子任务
+solve(..., emit_solver_iteration=False, emit_solver_final=True)
+apply_motion_step(..., stage=None)
+
+# 路径型子任务
+solve(..., emit_solver_iteration=False, emit_solver_final=False)
+apply_motion_step(..., stage="linear_step")</pre>
+
+    <div class="callout good">
+      这个配置已经能满足你现在的核心诉求：
+      <ol>
+        <li>GNN 仍然迭代求解。</li>
+        <li>简单任务可以只发最终收敛解。</li>
+        <li>Task3 可以继续按每个螺旋小步发外层最终命令角。</li>
+        <li>整个结构没有被重写，只是在现有架构里把“发哪一层结果”理顺了。</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="page-break">
+    <h2>11. 第一阶段不建议做的事</h2>
+    <ol>
+      <li>不引入 RTDE 和 <code>servoj</code> 作为第一版主方案。</li>
+      <li>不改 GNN 训练和迭代求解主逻辑。</li>
+      <li>不把 socket 代码散落到每个子任务里。</li>
+      <li>不新增独立通信进程、消息队列、中间件。</li>
+      <li>不把夹爪协议提前和机械臂关节流混在一起。</li>
+    </ol>
+
+    <div class="callout warn">
+      第一版的目标很明确：<strong>先把“甄别性发送 + 真机 TCP 下发”打通</strong>。只要这一版结构清晰，后面无论接夹爪、加状态反馈，还是进一步做更细的轨迹控制，都会顺很多。
+    </div>
+  </section>
+
+  <section>
+    <h2>12. 最终结论</h2>
+    <p>这次修订后的最优方案不是“减少 GNN 迭代”，而是“保留 GNN 迭代，但把真机发送点前移到更有物理意义的层级”。具体来说：</p>
+    <ol>
+      <li>简单点到点子任务，发送单次 <code>solve()</code> 的最终收敛解。</li>
+      <li>直线、圆弧、旋拧等路径型子任务，发送每个外层轨迹步最终形成的稳定命令角。</li>
+      <li>Task3 的旋拧阶段，发送的是每个螺旋步的最终 <code>cmd_angles</code>，而不是内部迭代角。</li>
+      <li>真实 TCP 通信直接复用你已有的 <code>tcp.py</code> 方式，接入到 <code>RobotIPClient</code> 即可。</li>
+      <li>整个实现保持最小增量，不重写求解器，不重写行为树，不引入额外复杂实体。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>13. 下一步真实代码改造顺序</h2>
+    <ol>
+      <li>先改 <code>robot_ip_client.py</code>，把 TCP 发送打通，保留日志镜像。</li>
+      <li>再改 <code>GNN/ik_solver_api.py</code>，加入最小的发射控制参数。</li>
+      <li>然后改 <code>task_approach.py</code>、<code>task_orient.py</code>、<code>task_linear.py</code>、<code>task_arc.py</code>、<code>task_screw.py</code> 的发送层级选择。</li>
+      <li>最后在三个行为树入口脚本中接入真实 IP、端口和启用配置。</li>
+    </ol>
+    <p class="small">这正好对应你要的后续节奏：先把方案讲清楚，然后按方案去改真实代码。</p>
+  </section>
+</body>
+</html>

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UR10e 真机实验后续规划与连续控制改进路线</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    :root {
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --line: #d7dee8;
+      --paper: #f5f8fb;
+      --card: #ffffff;
+      --accent: #0f5f73;
+      --accent-soft: #e8f7fa;
+      --good: #0f766e;
+      --good-soft: #e9f8f4;
+      --warn: #a04b00;
+      --warn-soft: #fff3e4;
+      --rose: #9f1239;
+      --rose-soft: #fff1f4;
+      --navy: #16324f;
+      --navy-soft: #eef4fb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      font-size: 12px;
+      line-height: 1.72;
+    }
+
+    body {
+      padding: 18px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      padding: 22px 24px 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 88% 10%, rgba(15, 95, 115, 0.18), transparent 28%),
+        linear-gradient(135deg, #f7fbfd 0%, #edf5fb 50%, #ffffff 100%);
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      line-height: 1.2;
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 6px 6px 0;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    h2 {
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 19px;
+    }
+
+    h3 {
+      margin: 16px 0 8px;
+      font-size: 14px;
+    }
+
+    p {
+      margin: 7px 0;
+    }
+
+    ul, ol {
+      margin: 8px 0 10px 20px;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 14px;
+      font-size: 11px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f6fa;
+    }
+
+    code {
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: #f1f4f8;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+    }
+
+    pre {
+      margin: 10px 0 12px;
+      padding: 12px 14px;
+      border: 1px solid #dde4ee;
+      border-radius: 12px;
+      background: #f8fafc;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 10.8px;
+      line-height: 1.6;
+    }
+
+    .callout {
+      margin: 12px 0;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+    }
+
+    .callout.good {
+      background: var(--good-soft);
+      border-color: #b9e8dc;
+    }
+
+    .callout.warn {
+      background: var(--warn-soft);
+      border-color: #efc6a6;
+    }
+
+    .callout.rose {
+      background: var(--rose-soft);
+      border-color: #f6c6d3;
+    }
+
+    .callout.navy {
+      background: var(--navy-soft);
+      border-color: #bfd3ea;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .card {
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .page-break {
+      break-before: page;
+      page-break-before: always;
+    }
+
+    a {
+      color: #0b6580;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div>
+      <span class="tag">UR10e 真机实验</span>
+      <span class="tag">GNN 逆解执行链路</span>
+      <span class="tag">连续控制规划</span>
+      <span class="tag">防卡顿专项</span>
+      <span class="tag">分阶段路线图</span>
+    </div>
+    <h1>UR10e 真机实验后续规划与连续控制改进路线</h1>
+    <p>本文档面向当前 <code>GNN_solver</code> 仓库的真实执行阶段，目标不是推翻现有 GNN 逆解和行为树结构，而是在保持当前架构边界的前提下，给出真机实验的后续推进方案、当前优先改进点，以及从离散 <code>movej</code> 逐步演进到更连续、更稳定且不易卡顿的控制路线。</p>
+    <p>文档判断依据来自当前仓库中的 <code>robot_ip_client.py</code>、<code>GNN/ik_solver_api.py</code>、<code>subtask/task_linear.py</code>、<code>subtask/task_screw.py</code>、三个行为树 demo 以及当前导出的 <code>robot_command_output/*.txt</code>。</p>
+    <div class="meta">生成日期：2026-04-28 | 当前仓库阶段：已具备 TCP 文本发送与阶段化命令发射能力，但尚未形成真正的连续闭环执行栈</div>
+  </section>
+
+  <section>
+    <h2>1. 当前项目状态判断</h2>
+    <div class="callout navy">
+      当前代码已经具备“真机发送出口”，但还没有形成“真机连续控制闭环”。也就是说，你现在已经可以把关节目标以 URScript 风格字符串发出去，但还没有把真实机器人状态反馈、发送节拍控制、命令缓冲与连续跟踪做成一条稳定链路。
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>层级</th>
+          <th>当前仓库事实</th>
+          <th>对真机实验的含义</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>发送适配层</td>
+          <td><code>robot_ip_client.py</code> 已支持 TCP 发送与本地日志镜像，合法阶段为 <code>solver_iteration</code>、<code>linear_step</code>、<code>solver_final</code>。</td>
+          <td>发送边界已经抽出来了，这是后续改造成真机执行层的最好入口，不需要重写高层任务脚本。</td>
+        </tr>
+        <tr>
+          <td>求解器层</td>
+          <td><code>GNN/ik_solver_api.py</code> 中的 <code>emit_command()</code> 能按阶段发命令；<code>solve()</code> 已支持开关 <code>emit_solver_iteration</code> 和 <code>emit_solver_final</code>。</td>
+          <td>说明当前架构已经考虑了“求解过程是否发命令”的问题，后面要做的不是乱加发送点，而是制定更严格的阶段策略。</td>
+        </tr>
+        <tr>
+          <td>插补执行层</td>
+          <td><code>subtask/task_linear.py</code>、<code>task_arc.py</code>、<code>task_screw.py</code> 在循环内调用 <code>solver.solve(..., emit_solver_iteration=False, emit_solver_final=False)</code>，再用 <code>apply_motion_step(..., stage="linear_step")</code> 发一步。</td>
+          <td>这是一个正确的现阶段设计，说明你已经在避免“每个 solver 内部迭代都往真机发”的极端做法。</td>
+        </tr>
+        <tr>
+          <td>Primitive 边界</td>
+          <td><code>task_approach.py</code>、<code>task_orient.py</code> 使用 <code>emit_solver_final=True</code>，成功后仅把姿态/位置应用到仿真，不在 <code>apply_motion_step()</code> 中重复发阶段命令。</td>
+          <td>说明当前 primitive 完成点发送一次最终姿态的思路是清晰的，不存在明显的阶段边界重复下发。</td>
+        </tr>
+        <tr>
+          <td>任务入口</td>
+          <td><code>task1_bt_demo.py</code>、<code>task2_bt_demo.py</code>、<code>task3_bt_demo.py</code> 默认都配置为 <code>COMMAND_SEND_STAGES = ("solver_final", "linear_step")</code>，目标端口为 <code>192.168.125.12:30002</code>。</td>
+          <td>说明现阶段是真机“离散点 + 插补步”混合发送，而不是完全连续的在线伺服控制。</td>
+        </tr>
+        <tr>
+          <td>当前日志密度</td>
+          <td>当前导出的命令数量约为：Task1 42 条、Task2 92 条、Task3 164 条。</td>
+          <td>仅按当前外层插补与阶段发送，命令量已经不低；如果贸然切到 <code>solver_iteration</code> 级发送，负载会迅速放大。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      从仓库现状看，最危险的误区不是“没有真机接口”，而是“误以为只要把发送频率继续拉高，就等于更连续”。实际上更连续控制需要同步解决反馈、节拍、缓冲、跟踪误差和执行语义，而不仅是多发几条 <code>movej</code>。
+    </div>
+  </section>
+
+  <section>
+    <h2>2. 你现在最需要改进的点</h2>
+
+    <h3>2.1 先补齐真机实验基线，而不是先追求高频</h3>
+    <ol>
+      <li>完成 TCP、Payload、TCP 工具坐标、零位、末端工具长度、工作空间边界和安全 home 点的统一校准。</li>
+      <li>明确“谁拥有控制权”：示教器、外部上位机、还是后续 RTDE/驱动程序，避免实验时出现控制源切换和状态不一致。</li>
+      <li>把故障恢复流程标准化：网络断开、急停、保护停、超限、抓取失败后如何回到安全姿态，必须先写成实验 SOP。</li>
+    </ol>
+
+    <h3>2.2 发送链路必须从“能发”升级到“可观测”</h3>
+    <ol>
+      <li>区分 <code>commanded_q</code> 和 <code>actual_q</code>。当前很多子任务把“上一轮求解出的关节角”直接当成下一轮起点，这在仿真中成立，但真机一旦有跟踪滞后就会产生模型与真实机械臂脱节。</li>
+      <li>增加统一的带时间戳日志，至少记录：发送时刻、阶段、目标关节角、加速度、速度、发送结果、真机反馈状态。</li>
+      <li>后续要接入实时反馈变量，优先记录：<code>actual_q</code>、<code>actual_TCP_pose</code>、<code>actual_qd</code>、<code>speed_scaling</code>、<code>robot_mode</code>、<code>safety_status</code>。</li>
+    </ol>
+
+    <h3>2.3 运动层要从“求解器输出即执行目标”升级为“执行器二次整形”</h3>
+    <ol>
+      <li>GNN 求解器负责给出可达方向和关节更新，不应该直接承担所有真机轨迹平滑责任。</li>
+      <li>执行层应增加“再采样 / 降频 / 阈值过滤 / 速度加速度限幅 / 过期命令丢弃”的二次整形。</li>
+      <li>螺旋装配阶段不能简单理解为“更多直线步”。它天然更敏感，更需要局部连续伺服、缓冲队列与实时反馈。</li>
+    </ol>
+
+    <h3>2.4 实验评价必须从“到没到”升级为“平不平、稳不稳、跟不跟得上”</h3>
+    <ol>
+      <li>除了最终位姿误差，还要记录发送周期抖动、任务耗时、实际跟踪误差、保护停次数和异常中断率。</li>
+      <li>连续控制的核心指标不是命令条数，而是机器人是否平滑、是否无停顿、是否没有明显追赶与回拉。</li>
+      <li>装配类任务还要额外记录末端速度波动、螺旋阶段失败步比例和旋进阶段的关节 6 跟随稳定性。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>3. 为什么当前真机容易出现卡顿</h2>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>原因 A：接口频率和意图节拍不匹配</h3>
+        <p>当前 demo 默认发往 <code>30002</code>。根据 UR 官方“Primary / Secondary / Realtime Interface”教程，<code>30002</code> 的 Secondary Interface 是 <strong>10 Hz</strong>，更适合低优先级和非关键命令；而当前仓库里 <code>task2</code> 与 <code>task_arc</code> 常见步进延时为 <code>0.02s</code>，等价于理论 50 Hz 节拍，<code>task1</code> / <code>task3</code> 的 <code>0.05s</code> 也接近 20 Hz。</p>
+        <p>这意味着上位机的“想发多快”和当前端口“适合承载什么节拍”并不一致，卡顿、堆积和非平滑执行是高概率事件。</p>
+      </div>
+
+      <div class="card">
+        <h3>原因 B：连续发送 <code>movej</code> 本质上仍是离散重规划</h3>
+        <p>你现在发出的每一条命令都是完整的关节空间目标。即使它们来自很密的插补点，对控制器而言也更像一串离散目标，而不是一条连续伺服流。</p>
+        <p>这会造成机器人频繁重定向、重新限速或在段与段之间出现轻微停顿，尤其是在目标点间距不均匀、姿态变化又比较大的时候更明显。</p>
+      </div>
+
+      <div class="card">
+        <h3>原因 C：当前求解起点主要来自“命令状态”而非“真实状态”</h3>
+        <p><code>task_linear.py</code>、<code>task_arc.py</code>、<code>task_screw.py</code> 都在循环中把上一轮求解结果继续传回下一轮 solver。对仿真来说没问题，因为仿真状态会立刻同步。</p>
+        <p>但真机存在执行滞后时，下一轮求解如果继续从“想象中的已到达姿态”出发，就会导致上位机比机器人更超前，最终表现为追赶、补偿、回拉和抖动。</p>
+      </div>
+
+      <div class="card">
+        <h3>原因 D：当前没有显式缓冲与拥塞控制</h3>
+        <p>现在的发送链路没有“队列长度上限、过期命令覆盖、最小发送周期、角度变化阈值、反馈滞后保护”等机制。</p>
+        <p>一旦网络抖动、控制器忙、或装配阶段局部难解，命令就可能积压；积压之后再执行，就会让机器人动作看起来像“卡一下，再补一下”。</p>
+      </div>
+    </div>
+
+    <div class="callout rose">
+      结合当前参数，风险最大的场景是把 <code>solver_iteration</code> 直接开放到真机。以当前仓库参数估算：Task2 的直线段理论上可放大到 <code>20 x 50 = 1000</code> 次更新机会；Task3 螺旋段若在每个螺旋步内部都开放 solver 迭代发射，则理论上可到 <code>90 x 60 = 5400</code> 次更新机会。这个量级已经不是“更连续”，而是“极易把执行链路冲垮”。</div>
+  </section>
+
+  <section>
+    <h2>4. 更连续控制的推荐路线</h2>
+
+    <div class="callout good">
+      推荐原则：<strong>先把离散命令做稳，再做缓冲连续，最后再做真连续伺服。</strong> 不建议从当前 <code>movej + 30002</code> 直接一步跳到“每次 solver 迭代都实时下发”。</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>阶段</th>
+          <th>目标</th>
+          <th>推荐控制方式</th>
+          <th>这一阶段要解决的问题</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>P0：真机基线期</td>
+          <td>先确保“能稳定到位、能安全恢复、参数方向完全正确”</td>
+          <td>继续使用当前 <code>movej</code>，但只保留低速、低频、外层关键点发送</td>
+          <td>校准、限位、方向验证、断线恢复、急停恢复、日志打通</td>
+        </tr>
+        <tr>
+          <td>P1：受控连续期</td>
+          <td>在不改核心架构的前提下显著减轻停顿</td>
+          <td><code>linear_step</code> 为主，加入发送限频、角度阈值、队列覆盖、真实状态回读</td>
+          <td>解决堆积、减少重复命令、避免“上一条未执行完下一条又来了”</td>
+        </tr>
+        <tr>
+          <td>P2：缓冲执行期</td>
+          <td>让执行器具备轨迹感，而不只是“收一条动一条”</td>
+          <td>PC 侧生成短时间窗轨迹片段，机器人侧或执行线程侧做缓冲消费</td>
+          <td>解决段间停顿、延迟抖动、螺旋阶段的不平顺</td>
+        </tr>
+        <tr>
+          <td>P3：真连续伺服期</td>
+          <td>实现更接近连续关节跟踪的控制效果</td>
+          <td>后续切换到 RTDE / 反向接口 / <code>servoj</code> 风格闭环方案</td>
+          <td>解决高密度 setpoint 跟踪、实际状态闭环、平滑性与时效性统一问题</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>4.1 P0 阶段：先把当前 <code>movej</code> 流程做稳</h3>
+    <ol>
+      <li>保留当前 <code>("solver_final", "linear_step")</code> 设计，不打开 <code>solver_iteration</code> 真机发送。</li>
+      <li>把所有任务的实验速度先统一降到一个保守档位，先做 Task1 和 Task2，不直接上 Task3 装配。</li>
+      <li>所有直线、圆弧、靠近、对准动作先用“低速 + 空载 + 大安全间隙”反复验证。</li>
+      <li>每次实验记录最少一份发送日志和一份真机状态日志，形成可回放问题样本。</li>
+    </ol>
+
+    <h3>4.2 P1 阶段：在现有架构中做第一轮防卡顿升级</h3>
+    <ol>
+      <li>给 <code>RobotIPClient</code> 增加最小发送周期 <code>min_send_interval</code>，优先从 5 到 10 Hz 量级做实验，而不是追求 20 到 50 Hz。</li>
+      <li>加入角度变化阈值。若本次目标相较上次发送的最大关节变化不足阈值，则直接跳过。</li>
+      <li>发送线程与计算线程解耦。求解器只生成目标，发送器决定“什么时候发、发哪条、是否覆盖旧命令”。</li>
+      <li>给队列设很小的上限，例如 1 到 3 个目标。新目标比旧目标更新时，允许覆盖未执行旧目标，避免堆积。</li>
+      <li>每个外层动作步开始前，用 <code>actual_q</code> 或最新可信反馈重置下一轮求解起点，至少定期重同步，而不是无限沿用命令态。</li>
+    </ol>
+
+    <h3>4.3 P2 阶段：让执行器具备短时缓冲能力</h3>
+    <ol>
+      <li>把“一个 primitive = 一串时间有序的 setpoint 片段”而不是“一步求解出一个点就立即发送”。</li>
+      <li>对片段做二次整形：速度限幅、加速度限幅、局部平滑、关节增量裁剪、段末过渡抑制。</li>
+      <li>螺旋装配单独处理，不再简单复用普通直线步调度。螺旋阶段更适合固定周期、固定步长、可回读状态的局部控制器。</li>
+      <li>当真机反馈显示跟踪误差增大或 <code>speed_scaling</code> 下降时，自动降低发送率或暂停新目标注入。</li>
+    </ol>
+
+    <h3>4.4 P3 阶段：真正想做到“连续”时，建议切换到更合适的控制接口</h3>
+    <p>如果你的目标是明显减少段间停顿，并实现接近连续跟踪的控制效果，那么长期来看不应继续把高密度 setpoint 都压在 <code>30002 + movej</code> 上。更合理的方向是引入 RTDE 与伺服式控制链路。</p>
+    <ol>
+      <li>UR 官方 RTDE 文档说明其默认可做同步数据交换，并提供 <code>actual_q</code>、<code>actual_TCP_pose</code>、<code>actual_qd</code>、<code>speed_scaling</code>、<code>safety_status</code> 等输出变量，这正好满足你做闭环与观测的需要。</li>
+      <li>UR 官方驱动参数文档说明 <code>servoj</code> 相关的 <code>gain</code> 和 <code>lookahead_time</code> 会影响“平滑性”和“延迟”的平衡，这比单纯堆更多 <code>movej</code> 更接近你想要的“连续但不抖”。</li>
+      <li>UR 官方示例还强调，在进入连续写关节命令的循环前，应先读取 <code>actual_q</code> 作为目标缓冲初始化，这个思路很值得你后面迁移时照搬。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>5. 防卡顿专项改进建议</h2>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>发送节拍控制</h3>
+        <ol>
+          <li>增加最小发送周期。</li>
+          <li>加入角度死区阈值。</li>
+          <li>加入速度/加速度门控。</li>
+          <li>队列只保留最新未执行目标，避免越积越多。</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>反馈闭环</h3>
+        <ol>
+          <li>周期性读取 <code>actual_q</code> 和 <code>actual_TCP_pose</code>。</li>
+          <li>当 <code>|actual_q - commanded_q|</code> 超阈值时暂停继续推新点。</li>
+          <li>当 <code>speed_scaling</code> 持续下降时自动降频。</li>
+          <li>保护停或断连后立即清空发送队列。</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>轨迹整形</h3>
+        <ol>
+          <li>保持笛卡尔步长均匀，而不是只按固定步数切分。</li>
+          <li>接近目标时自动降速、降频、放宽求解微调发送。</li>
+          <li>螺旋段使用固定周期的局部控制器，不与普通线性步复用完全相同策略。</li>
+          <li>必要时对目标关节序列做轻量低通平滑。</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>异常与恢复</h3>
+        <ol>
+          <li>网络中断后不要自动续发旧队列。</li>
+          <li>任何保护停后，重新标定“当前真实关节角”再继续。</li>
+          <li>每个 primitive 结束都检查真机实际状态，而不是只相信上位机内部变量。</li>
+          <li>把“恢复到安全 home 点”的动作做成标准流程，而不是临时人工处理。</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      一个非常关键的工程原则是：<strong>连续控制的平滑性主要来自“反馈与节拍的一致”，不是来自“发送更密”。</strong> 如果没有反馈同步，再密的 setpoint 也可能只是在给控制器制造拥堵。
+    </div>
+  </section>
+
+  <section>
+    <h2>6. 推荐实验顺序</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>实验阶段</th>
+          <th>建议任务</th>
+          <th>主要目的</th>
+          <th>通过标准</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>E1：通信空跑</td>
+          <td>单独发送几组固定 <code>movej</code></td>
+          <td>验证 IP、端口、远程控制模式、命令字符串格式、关节顺序</td>
+          <td>无保护停；到位方向正确；日志可复现</td>
+        </tr>
+        <tr>
+          <td>E2：低速单 primitive</td>
+          <td>先做 <code>orient</code>、<code>approach</code></td>
+          <td>验证 <code>solver_final</code> 类命令的最终到位稳定性</td>
+          <td>无明显抖动；末端方向正确；误差稳定</td>
+        </tr>
+        <tr>
+          <td>E3：线性步执行</td>
+          <td>Task1 / Task2 中的 <code>linear_step</code></td>
+          <td>验证外层插补密度与真机跟随能力</td>
+          <td>段间无明显停顿；没有命令堆积迹象</td>
+        </tr>
+        <tr>
+          <td>E4：弧线与扫描</td>
+          <td>Task2 圆弧扫描</td>
+          <td>验证姿态变化叠加位移时的平滑性</td>
+          <td>路径连续；视角稳定；轨迹没有回拉</td>
+        </tr>
+        <tr>
+          <td>E5：螺旋装配预试</td>
+          <td>Task3，先空载、再轻接触</td>
+          <td>验证螺旋阶段是否需要单独控制器</td>
+          <td>旋进阶段无剧烈抖动；失败步比例可控</td>
+        </tr>
+        <tr>
+          <td>E6：连续控制升级验证</td>
+          <td>P1 / P2 / P3 新链路</td>
+          <td>比较离散点、缓冲轨迹、伺服流三类方案差异</td>
+          <td>平滑性、耗时、误差、稳定性均优于旧方案</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page-break">
+    <h2>7. 建议记录的实验指标</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>指标</th>
+          <th>含义</th>
+          <th>为什么重要</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>发送周期均值 / 方差</td>
+          <td>上位机发命令的平均节拍与抖动</td>
+          <td>可以直接判断是否存在不稳定发送与拥塞</td>
+        </tr>
+        <tr>
+          <td><code>actual_q - commanded_q</code></td>
+          <td>真实关节角与目标关节角的偏差</td>
+          <td>是连续控制是否“跟得上”的核心指标</td>
+        </tr>
+        <tr>
+          <td><code>actual_TCP_pose</code> 误差</td>
+          <td>真实末端位姿与任务目标的偏差</td>
+          <td>验证最终效果，不只看关节层</td>
+        </tr>
+        <tr>
+          <td><code>speed_scaling</code></td>
+          <td>轨迹限速器缩放系数</td>
+          <td>可以反映控制器是否在被迫降速或保护性限速</td>
+        </tr>
+        <tr>
+          <td>保护停 / 异常中断次数</td>
+          <td>安全层面失败统计</td>
+          <td>是能否进入正式实验的重要门槛</td>
+        </tr>
+        <tr>
+          <td>任务总耗时</td>
+          <td>从启动到完成的总时间</td>
+          <td>便于比较不同控制方案的执行效率</td>
+        </tr>
+        <tr>
+          <td>装配失败步比例</td>
+          <td>螺旋阶段局部步求解或跟踪失败占比</td>
+          <td>能直接反映装配连续性是否足够</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>8. 对当前代码层的后续改造建议</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>文件</th>
+          <th>建议职责</th>
+          <th>后续改造方向</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>robot_ip_client.py</code></td>
+          <td>保持为执行适配层</td>
+          <td>增加最小发送周期、最新命令覆盖、发送队列、失败重连、日志时间戳、状态反馈接口</td>
+        </tr>
+        <tr>
+          <td><code>GNN/ik_solver_api.py</code></td>
+          <td>保持为求解器</td>
+          <td>不要让它变成高频网络发送器；只保留受控回调与阶段发射开关</td>
+        </tr>
+        <tr>
+          <td><code>subtask/runtime_bridge.py</code></td>
+          <td>统一仿真状态应用与阶段命令发射</td>
+          <td>增加阶段元数据、命令编号、记录 hooks，后面可接入真机状态同步</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task_linear.py</code></td>
+          <td>保持外层轨迹步组织</td>
+          <td>改为按实际距离自适应分段，并支持从真实反馈重置 solver 起点</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task_screw.py</code></td>
+          <td>保持装配局部控制逻辑</td>
+          <td>后续优先单独升级，最有必要率先切换到缓冲或伺服风格控制</td>
+        </tr>
+        <tr>
+          <td><code>subtask/task1_bt_demo.py</code> 等</td>
+          <td>保持任务级参数入口</td>
+          <td>集中管理实验预设：安全档、低速档、连续控制档、装配档</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout good">
+      这条改造思路的优点是：你可以先保留当前论文里的整体结构不变，只替换“执行出口”和“反馈闭环”，不会把 GNN、行为树、子任务 primitive 全部打散重做。
+    </div>
+  </section>
+
+  <section>
+    <h2>9. 最推荐的近期推进顺序</h2>
+    <ol>
+      <li>先在当前架构上完成 P0：真机基线验证、日志打通、安全恢复流程。</li>
+      <li>再做 P1：给 <code>RobotIPClient</code> 增加限频、阈值、队列覆盖和反馈重同步，先把 Task1 / Task2 跑顺。</li>
+      <li>之后单独攻关 Task3：把螺旋装配阶段从普通 <code>movej</code> 分段思路里拆出来，建立更专门的局部执行器。</li>
+      <li>当你明确需要“更连续且更平滑”时，再进入 P2 / P3，逐步迁移到带反馈的缓冲执行，最终再考虑 RTDE + <code>servoj</code> 风格链路。</li>
+    </ol>
+
+    <div class="callout rose">
+      简短结论：<strong>当前最优策略不是立刻开放 <code>solver_iteration</code> 真机发送，而是先把现有 <code>linear_step + solver_final</code> 做稳，再逐步引入限频、反馈、缓冲，最后才进入真正的连续伺服控制。</strong>
+    </div>
+  </section>
+
+  <section>
+    <h2>10. 参考依据</h2>
+    <p>仓库内依据：</p>
+    <ul>
+      <li><code>robot_ip_client.py</code></li>
+      <li><code>GNN/ik_solver_api.py</code></li>
+      <li><code>subtask/task_linear.py</code></li>
+      <li><code>subtask/task_arc.py</code></li>
+      <li><code>subtask/task_screw.py</code></li>
+      <li><code>subtask/task1_bt_demo.py</code>、<code>subtask/task2_bt_demo.py</code>、<code>subtask/task3_bt_demo.py</code></li>
+      <li><code>robot_command_output/task1_movej_commands.txt</code>、<code>task2_movej_commands.txt</code>、<code>task3_movej_commands.txt</code></li>
+    </ul>
+
+    <p>UR 官方资料（访问日期：2026-04-28）：</p>
+    <ul>
+      <li><a href="https://docs.universal-robots.com/tutorials/urscript-tutorials/socket-communication.html">Use the Primary, Secondary, and Realtime Interface to send URScript commands</a></li>
+      <li><a href="https://www.universal-robots.com/manuals/EN/HTML/SW10_10/Content/Prod-RTDE/Real_Time_Data_Exchange_RTDE.htm">Real-Time Data Exchange (RTDE)</a></li>
+      <li><a href="https://docs.universal-robots.com/Universal_Robots_ROS2_Documentation/doc/ur_robot_driver/ur_robot_driver/doc/hardware_interface_parameters.html">UR Hardware interface parameters</a></li>
+      <li><a href="https://docs.universal-robots.com/Universal_Robots_ROS2_Documentation/doc/ur_client_library/doc/examples/ur_driver.html">Example driver</a></li>
+    </ul>
+    <p class="small">说明：文中关于“当前 <code>movej + 30002</code> 更适合离散高层命令而不适合直接承担高密度连续伺服”的结论，是基于仓库现状与上述官方接口说明做出的工程推断，不表示你当前实现不可用，而是表示它更适合作为真机实验早期阶段的稳定基线。</p>
+  </section>
+</body>
+</html>

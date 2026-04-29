@@ -1,0 +1,21 @@
+# Local tooling and editor state
+.codex/
+.idea/
+.vscode/
+.tmp_repo/
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log
