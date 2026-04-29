@@ -19,3 +19,9 @@ env/
 .DS_Store
 Thumbs.db
 *.log
+
+# Local files not published to GitHub
+tcp.py
+任务书.pdf
+开题报告.pdf
+模块化可重构无人机系统结构设计与控制策略研究.pdf
